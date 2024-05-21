@@ -63,7 +63,7 @@ const generateToken = async () => {
 app.post("/create-order", async (req, res) => {
   const url = "https://api-m.sandbox.paypal.com/v2/checkout/orders";
   const { amount } = req.body;
-  // console.log(amount);
+
   const data = {
     intent: "CAPTURE",
     purchase_units: [
@@ -77,10 +77,11 @@ app.post("/create-order", async (req, res) => {
     application_context: {
       brand_name: "CalAI",
       locale: "en-US",
-      return_url: "https://calai.org/capture/success.html", // This is the returnUrl
-      cancel_url: "https://calai.org/capture/cancel.html", // Your cancel URL
+      return_url: "https://calai.org/capture/success.html", // Ensure this URL is correct
+      cancel_url: "https://calai.org/capture/cancel.html", // Ensure this URL is correct
     },
   };
+
   const accessToken = await generateToken();
   const headers = {
     "Content-Type": "application/json",
@@ -94,12 +95,13 @@ app.post("/create-order", async (req, res) => {
     const paypalRedirect = links.find((link) => link.rel === "approve");
     console.log(response.data.id);
     if (paypalRedirect) {
-      res.json({ orderId: response.id, approvalUrl: paypalRedirect.href });
+      res.json({ orderId: response.data.id, approvalUrl: paypalRedirect.href });
     } else {
       res.status(500).json({ error: "Failed to get PayPal redirect URL" });
     }
   } catch (error) {
     console.log(error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
