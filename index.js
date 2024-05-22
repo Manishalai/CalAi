@@ -78,8 +78,8 @@ app.post("/create-order", async (req, res) => {
     application_context: {
       brand_name: "CalAI",
       locale: "en-US",
-      return_url: "https://calai-site.vercel.app/capture/success.html", // This is the returnUrl
-      cancel_url: "https://calai-site.vercel.app/capture/cancel.html", // Your cancel URL
+      return_url: "https://calai.org/capture/success.html", // This is the returnUrl
+      cancel_url: "https://calai.org/capture/cancel.html", // Your cancel URL
     },
   };
   const accessToken = await generateToken();
@@ -290,7 +290,7 @@ app.post("/register", async (req, res) => {
 
 //SERVER CHECK
 app.get("/", async (req, res) => {
-  res.send("Hello!! World");
+  res.send("Hello!! World I am Safe !!!");
 });
 // Start server
 app.listen(port, () => {
