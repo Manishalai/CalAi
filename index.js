@@ -129,7 +129,7 @@ app.post("/capture-order", async (req, res) => {
     // Store only the necessary order data in Firestore
     const orderRef = db
       .collection("after_transaction")
-      .doc(userEmail)
+      .doc("aman@gmail.com")
       .collection("successfulPayments")
       .doc(orderId);
     await orderRef.set(response.data);
@@ -256,6 +256,7 @@ app.post("/register", async (req, res) => {
     // Ensure that the user is authenticated and get their email
     // const userEmail = firebase.auth().currentUser;
     userEmail = email;
+    console.log(userEmail);
     // Create a reference to the Firestore collection for the user's data
     const userCollectionRef = db
       .collection("before_transaction")
