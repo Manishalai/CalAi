@@ -130,7 +130,7 @@ app.post("/capture-order", async (req, res) => {
     console.log(userEmail);
     const orderRef = db
       .collection("after_transaction")
-      .doc(response.data.email_address)
+      .doc(responseData.payer.email_address)
       .collection("successfulPayments")
       .doc(orderId);
     await orderRef.set(response.data);
