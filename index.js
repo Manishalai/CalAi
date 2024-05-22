@@ -127,9 +127,10 @@ app.post("/capture-order", async (req, res) => {
     console.log("Order Captured:", response.data);
 
     // Store only the necessary order data in Firestore
+    console.log(userEmail);
     const orderRef = db
       .collection("after_transaction")
-      .doc(firebase.auth().currentUser)
+      .doc(userEmail)
       .collection("successfulPayments")
       .doc(orderId);
     await orderRef.set(response.data);
