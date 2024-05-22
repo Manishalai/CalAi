@@ -1,4 +1,3 @@
-
 const express = require("express");
 const firebase = require("firebase/app");
 const cors = require("cors");
@@ -100,7 +99,7 @@ app.post("/create-order", async (req, res) => {
       res.status(500).json({ error: "Failed to get PayPal redirect URL" });
     }
   } catch (error) {
-    // console.log(error.message);
+    console.log(error.message);
   }
 });
 
@@ -290,7 +289,7 @@ app.post("/register", async (req, res) => {
 
 //SERVER CHECK
 app.get("/", async (req, res) => {
-  res.send("Hello!! World I am Safe !!!");
+  res.send("Hello!! World i am safe");
 });
 // Start server
 app.listen(port, () => {
