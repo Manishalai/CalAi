@@ -4,6 +4,8 @@ const cors = require("cors");
 const app = express();
 const axios = require("axios");
 const nodemailer = require("nodemailer");
+const PDFDocument = require("pdfkit");
+const bodyParser = require("body-parser");
 require("dotenv").config();
 require("firebase/auth");
 require("firebase/database");
@@ -11,6 +13,7 @@ require("firebase/firestore");
 // Middleware for parsing JSON and URL-encoded request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 // Use cors middleware to handle CORS
 app.use(cors());
@@ -50,12 +53,120 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+//DUMMY RESPONSE
+const dummyResponseData = {
+  id: "1087061886278774P",
+  links: [
+    {
+      href: "https://api.sandbox.paypal.com/v2/checkout/orders/1087061886278774P",
+      method: "GET",
+      rel: "self",
+    },
+  ],
+  payer: {
+    address: {
+      country_code: "US",
+    },
+    email_address: "sb-ywlsr30526663@personal.example.com",
+    name: {
+      given_name: "John",
+      surname: "Doe",
+    },
+    payer_id: "MEJ2GQ9AHQP6E",
+  },
+  payment_source: {
+    paypal: {
+      account_id: "MEJ2GQ9AHQP6E",
+      account_status: "VERIFIED",
+      address: {
+        country_code: "US",
+      },
+      email_address: "sb-ywlsr30526663@personal.example.com",
+      name: {
+        given_name: "John",
+        surname: "Doe",
+      },
+    },
+  },
+  purchase_units: [
+    {
+      payments: {
+        captures: [
+          {
+            amount: {
+              currency_code: "USD",
+              value: "999.00",
+            },
+            create_time: "2024-05-23T06:50:20Z",
+            final_capture: true,
+            id: "1HT7534053867060D",
+            links: [
+              {
+                href: "https://api.sandbox.paypal.com/v2/payments/captures/1HT7534053867060D",
+                method: "GET",
+                rel: "self",
+              },
+              {
+                href: "https://api.sandbox.paypal.com/v2/payments/captures/1HT7534053867060D/refund",
+                method: "POST",
+                rel: "refund",
+              },
+              {
+                href: "https://api.sandbox.paypal.com/v2/checkout/orders/1087061886278774P",
+                method: "GET",
+                rel: "up",
+              },
+            ],
+            seller_protection: {
+              dispute_categories: [
+                "ITEM_NOT_RECEIVED",
+                "UNAUTHORIZED_TRANSACTION",
+              ],
+              status: "ELIGIBLE",
+            },
+            seller_receivable_breakdown: {
+              gross_amount: {
+                currency_code: "USD",
+                value: "999.00",
+              },
+              net_amount: {
+                currency_code: "USD",
+                value: "963.64",
+              },
+              paypal_fee: {
+                currency_code: "USD",
+                value: "35.36",
+              },
+            },
+            status: "COMPLETED",
+            update_time: "2024-05-23T06:50:20Z",
+            reference_id: "default",
+            shipping: {
+              address: {
+                address_line_1: "1 Main St",
+                admin_area_1: "CA",
+                admin_area_2: "San Jose",
+                country_code: "US",
+                postal_code: "95131",
+              },
+              name: {
+                full_name: "John Doe",
+              },
+            },
+          },
+        ],
+      },
+    },
+  ],
+  status: "COMPLETED",
+};
+
 // SEND WELCOME EMAIL
 async function sendWelcomeEmail(email) {
   try {
     // Create email message
     const mailOptions = {
-      from: "Aman <amanshankarsingh2001@gmail.com>", // Sender address
+      from: `Kristin Parker <amanshankarsingh2001@gmail.com>`, // Sender address
       to: email, // Receiver address
       subject: "Welcome to Our App!", // Subject line
       html: "<p>Welcome to Our App!</p>", // HTML body (can be more complex)
@@ -86,13 +197,128 @@ app.post("/send_welcome_email", async (req, res) => {
       .status(200)
       .json({ success: true, message: "User registered successfully." });
   } catch (error) {
-    console.error("Error registering user:", error);
+    console.error("Error sending email to user:", error);
     // Return error response
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to register user." });
+    res.status(500).json({ success: false, message: "Failed to send email." });
   }
 });
+
+//GENERATING PDF
+async function generatePdf(orderData) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: "A4", margin: 50 });
+    const buffers = [];
+
+    doc.on("data", buffers.push.bind(buffers));
+    doc.on("end", () => {
+      let pdfData = Buffer.concat(buffers);
+      resolve(pdfData);
+    });
+
+    doc.on("error", (err) => {
+      reject(err);
+    });
+
+    // Extract relevant data
+    const payerName = `${orderData.payer.name.given_name} ${orderData.payer.name.surname}`;
+    const payerAddress = `1 Main St, San Jose, CA 95131, US`; // Full address from the shipping details
+    const description = "AI Training Course"; // Assuming a fixed description as not provided in dummy data
+    const rate = orderData.purchase_units[0].payments.captures[0].amount.value;
+    const amount = rate;
+    const total = rate;
+    const datePaid =
+      orderData.purchase_units[0].payments.captures[0].create_time.split(
+        "T"
+      )[0];
+
+    // Add content to the PDF
+    // Add header
+    doc
+      .image(
+        "C:/Users/91920/Desktop/calAi/Cal_ai_orign-removebg-preview.png",
+        50,
+        45,
+        { width: 70, height: 70 }
+      )
+      .fontSize(20)
+      .fillColor("black") // Set default text color to black
+      .text("California Artificial Intelligence Institute", 140, 70) // Adjusted position of text
+      .moveDown();
+
+    // Add invoice details
+    doc.font("Helvetica-Bold").fontSize(13).text("Invoice", 50, 120);
+    doc
+      .fillColor("black")
+      .fontSize(10)
+      .text(`Invoice number: ${orderData.id}`, 50, 140);
+    doc
+      .fillColor("black")
+      .fontSize(10)
+      .text(
+        `Transaction ID: ${orderData.purchase_units[0].payments.captures[0].id}`,
+        50,
+        155
+      );
+    doc.fillColor("black").fontSize(10).text(`Date Paid: ${datePaid}`, 50, 170);
+    doc.fillColor("black").fontSize(10).text(`Payment method: PayPal`, 50, 185);
+
+    // Add billing details
+    doc.font("Helvetica-Bold").fontSize(13).text("Bill to", 400, 120);
+    doc.fillColor("black").fontSize(10).text(payerName, 400, 140);
+    doc.fillColor("black").fontSize(10).text(payerAddress, 400, 155);
+
+    // Add table header
+    doc.moveDown();
+    doc.font("Helvetica-Bold").fontSize(13).text("NO", 50, 250, { width: 50 });
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(13)
+      .text("DESCRIPTION", 100, 250, { width: 200 });
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(13)
+      .text("RATE", 300, 250, { width: 100 });
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(13)
+      .text("AMOUNT", 400, 250, { width: 100 });
+
+    // Add table row
+    doc.fontSize(10).text("1", 50, 270, { width: 50 });
+    doc.fontSize(10).text(description, 100, 270, { width: 200 });
+    doc.fontSize(10).text(`$ ${rate}`, 300, 270, { width: 100 });
+    doc.fontSize(10).text(`$ ${amount}`, 400, 270, { width: 100 });
+
+    // Add total
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(13)
+      .text("Total", 300, 300, { width: 100 });
+    doc.fontSize(10).text(`$ ${total}`, 400, 300, { width: 100 });
+
+    doc.end();
+  });
+}
+
+//SEND PDF WITH EMAIL
+async function sendEmailWithPdf(email, pdfBuffer) {
+  const mailOptions = {
+    from: "Kristin Parker <amanshankarsingh2001@gmail.com>",
+    to: email,
+    subject: "Your Order Receipt",
+    text: "Thank you for your purchase. Please find your order receipt attached.",
+    attachments: [
+      {
+        filename: "receipt.pdf",
+        content: pdfBuffer,
+        contentType: "application/pdf",
+      },
+    ],
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log("Email sent: " + info.response);
+}
 
 //GENERATE TOKEN
 const generateToken = async () => {
@@ -196,6 +422,15 @@ app.post("/capture-order", async (req, res) => {
       message: "Order captured successfully",
       transactionId: response.data.id,
     });
+    const orderData = response.data;
+
+    // Generate PDF
+    const pdfBuffer = await generatePdf(orderData);
+    console.log(pdfBuffer);
+    // Send PDF via email
+    await sendEmailWithPdf(orderData.payer.email_address, pdfBuffer);
+
+    console.log("PDF sent successfully to", orderData.payer.email_address);
   } catch (error) {
     console.error("Error capturing order:", error.message);
     console.error("Error response:", error.response.data); // Log detailed error response
