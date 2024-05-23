@@ -233,14 +233,7 @@ async function generatePdf(orderData) {
 
     // Add content to the PDF
     // Add header
-    doc
-      .image(
-        "C:/Users/91920/Desktop/calAi/Cal_ai_orign-removebg-preview.png",
-        50,
-        45,
-        { width: 70, height: 70 }
-      )
-      .fontSize(20)
+    doc.fontSize(20)
       .fillColor("black") // Set default text color to black
       .text("California Artificial Intelligence Institute", 140, 70) // Adjusted position of text
       .moveDown();
