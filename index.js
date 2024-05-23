@@ -343,7 +343,46 @@ const generateToken = async () => {
 
 //CREATING ORDER
 app.post("/create-order", async (req, res) => {
-  alert("ok");
+  const url = "https://api-m.sandbox.paypal.com/v2/checkout/orders";
+  const { amount } = req.body;
+  // console.log(amount);
+  const data = {
+    intent: "CAPTURE",
+    purchase_units: [
+      {
+        amount: {
+          currency_code: "USD",
+          value: amount,
+        },
+      },
+    ],
+    application_context: {
+      brand_name: "CalAI",
+      locale: "en-US",
+      return_url: "https://calai.org/capture/success.html", // This is the returnUrl
+      cancel_url: "https://calai.org/capture/cancel.html", // Your cancel URL
+    },
+  };
+  const accessToken = await generateToken();
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${accessToken}`,
+  };
+
+  try {
+    const response = await axios.post(url, data, { headers });
+    console.log("Order Created:", response.data);
+    const { links } = response.data;
+    const paypalRedirect = links.find((link) => link.rel === "approve");
+    console.log(response.data.id);
+    if (paypalRedirect) {
+      res.json({ orderId: response.id, approvalUrl: paypalRedirect.href });
+    } else {
+      res.status(500).json({ error: "Failed to get PayPal redirect URL" });
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
 });
 
 //CAPTURING ORDER
