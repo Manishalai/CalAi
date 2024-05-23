@@ -3,6 +3,7 @@ const firebase = require("firebase/app");
 const cors = require("cors");
 const app = express();
 const axios = require("axios");
+const nodemailer = require("nodemailer");
 require("dotenv").config();
 require("firebase/auth");
 require("firebase/database");
@@ -37,6 +38,61 @@ const db = firebase.firestore();
 const clientId = process.env.PAYPAL_CLIENT_ID;
 const clientSecret = process.env.PAYPAL_SECRET_KEY;
 const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+
+// NODEMAILER CONFIGURATION
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_SECURE === "true", // Convert to boolean
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS, // Your password
+  },
+});
+
+// SEND WELCOME EMAIL
+async function sendWelcomeEmail(email) {
+  try {
+    // Create email message
+    const mailOptions = {
+      from: "Aman <amanshankarsingh2001@gmail.com>", // Sender address
+      to: email, // Receiver address
+      subject: "Welcome to Our App!", // Subject line
+      html: "<p>Welcome to Our App!</p>", // HTML body (can be more complex)
+    };
+
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent: " + info.response);
+
+    return { success: true, message: "Welcome email sent successfully." };
+  } catch (error) {
+    console.error("Error sending welcome email:", error);
+    return { success: false, message: "Failed to send welcome email." };
+  }
+}
+
+//CALLING SEND EMAIL API
+app.post("/send_welcome_email", async (req, res) => {
+  // Your user registration logic here
+  const { email } = req.body;
+
+  try {
+    // Simulate user registration, then send welcome email
+    await sendWelcomeEmail(email);
+
+    // Return success response
+    res
+      .status(200)
+      .json({ success: true, message: "User registered successfully." });
+  } catch (error) {
+    console.error("Error registering user:", error);
+    // Return error response
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to register user." });
+  }
+});
 
 //GENERATE TOKEN
 const generateToken = async () => {
@@ -293,7 +349,7 @@ app.post("/register", async (req, res) => {
 app.get("/", async (req, res) => {
   res.send("Hello!! World i am safe");
 });
-// Start server
+// START SERVER
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
