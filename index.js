@@ -233,7 +233,14 @@ async function generatePdf(orderData) {
 
     // Add content to the PDF
     // Add header
-    doc.fontSize(20)
+    doc
+      .image(
+        "C:/Users/91920/Desktop/calAi/Cal_ai_orign-removebg-preview.png",
+        50,
+        45,
+        { width: 70, height: 70 }
+      )
+      .fontSize(20)
       .fillColor("black") // Set default text color to black
       .text("California Artificial Intelligence Institute", 140, 70) // Adjusted position of text
       .moveDown();
@@ -317,7 +324,7 @@ async function sendEmailWithPdf(email, pdfBuffer) {
 const generateToken = async () => {
   try {
     const tokenResponse = await axios.post(
-      "https://api.paypal.com/v2/oauth2/token",
+      "https://api.paypal.com/v1/oauth2/token",
       "grant_type=client_credentials",
       {
         headers: {
@@ -327,7 +334,7 @@ const generateToken = async () => {
       }
     );
 
-    // console.log(tokenResponse.data.access_token);
+    console.log(tokenResponse.data.access_token);
     return tokenResponse.data.access_token;
   } catch (error) {
     console.error("Error getting access token:", error.message);
@@ -579,5 +586,5 @@ app.get("/", async (req, res) => {
 });
 // START SERVER
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on port:${port}`);
 });
