@@ -317,7 +317,7 @@ async function sendEmailWithPdf(email, pdfBuffer) {
 const generateToken = async () => {
   try {
     const tokenResponse = await axios.post(
-      "https://api.sandbox.paypal.com/v1/oauth2/token",
+      "https://api.paypal.com/v2/oauth2/token",
       "grant_type=client_credentials",
       {
         headers: {
@@ -336,7 +336,7 @@ const generateToken = async () => {
 
 //CREATING ORDER
 app.post("/create-order", async (req, res) => {
-  const url = "https://api-m.sandbox.paypal.com/v2/checkout/orders";
+  const url = "https://api.paypal.com/v2/checkout/orders";
   const { amount } = req.body;
   // console.log(amount);
   const data = {
@@ -386,7 +386,7 @@ app.post("/capture-order", async (req, res) => {
     return res.status(400).json({ error: "Order ID is required" });
   }
 
-  const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`;
+  const url = `https://api.paypal.com/v2/checkout/orders/${orderId}/capture`;
   const data = {
     note_to_payer: "Thank you for your purchase!",
   };
