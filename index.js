@@ -405,6 +405,7 @@ app.post("/capture-order", async (req, res) => {
     const response = await axios.post(url, data, { headers });
     console.log("Order Captured:", response.data);
     // Generate PDF
+    const orderData = response.data;
     const pdfBuffer = await generatePdf(orderData);
     console.log(pdfBuffer);
     // Send PDF via email
@@ -425,7 +426,7 @@ app.post("/capture-order", async (req, res) => {
       message: "Order captured successfully",
       transactionId: response.data.id,
     });
-    const orderData = response.data;
+    
   } catch (error) {
     console.error("Error capturing order:", error.message);
     console.error("Error response:", error.response.data); // Log detailed error response
