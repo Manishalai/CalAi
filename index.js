@@ -303,7 +303,7 @@ async function generatePdf(orderData) {
 async function sendEmailWithPdf(email, pdfBuffer) {
   const mailOptions = {
     from: "Kristin Parker <kristin.p@calai.org>",
-    to: email,
+    to: "kristin.p@calai.org",
     subject: "Your Order Receipt",
     text: "Thank you for your purchase. Please find your order receipt attached.",
     attachments: [
