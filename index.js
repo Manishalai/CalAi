@@ -38,8 +38,8 @@ const database = firebase.database();
 const db = firebase.firestore();
 
 //PAYPAL CREDENTIALS
-const clientId = process.env.PAYPAL_CLIENT_ID;
-const clientSecret = process.env.PAYPAL_SECRET_KEY;
+const clientId = process.env.PAYPAL_CLIENT_ID_SANDBOX;
+const clientSecret = process.env.PAYPAL_SECRET_KEY_SANDBOX;
 const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
 // NODEMAILER CONFIGURATION
@@ -166,7 +166,7 @@ async function sendWelcomeEmail(email) {
   try {
     // Create email message
     const mailOptions = {
-      from: `Kristin Parker <amanshankarsingh2001@gmail.com>`, // Sender address
+      from: `Kristin Parker <kristin.p@calai.org>`, // Sender address
       to: email, // Receiver address
       subject: "Welcome to Our App!", // Subject line
       html: "<p>Welcome to Our App!</p>", // HTML body (can be more complex)
@@ -191,7 +191,6 @@ app.post("/send_welcome_email", async (req, res) => {
   try {
     // Simulate user registration, then send welcome email
     await sendWelcomeEmail(email);
-
     // Return success response
     res
       .status(200)
@@ -303,7 +302,7 @@ async function generatePdf(orderData) {
 //SEND PDF WITH EMAIL
 async function sendEmailWithPdf(email, pdfBuffer) {
   const mailOptions = {
-    from: "Kristin Parker <amanshankarsingh2001@gmail.com>",
+    from: "Kristin Parker <kristin.p@calai.org>",
     to: email,
     subject: "Your Order Receipt",
     text: "Thank you for your purchase. Please find your order receipt attached.",
@@ -317,6 +316,7 @@ async function sendEmailWithPdf(email, pdfBuffer) {
   };
 
   const info = await transporter.sendMail(mailOptions);
+  console.log(info);
   console.log("Email sent: " + info.response);
 }
 
@@ -324,7 +324,7 @@ async function sendEmailWithPdf(email, pdfBuffer) {
 const generateToken = async () => {
   try {
     const tokenResponse = await axios.post(
-      "https://api.paypal.com/v1/oauth2/token",
+      "https://api.sandbox.paypal.com/v1/oauth2/token",
       "grant_type=client_credentials",
       {
         headers: {
@@ -343,7 +343,7 @@ const generateToken = async () => {
 
 //CREATING ORDER
 app.post("/create-order", async (req, res) => {
-  const url = "https://api.paypal.com/v2/checkout/orders";
+  const url = "https://api.sandbox.paypal.com/v2/checkout/orders";
   const { amount } = req.body;
   // console.log(amount);
   const data = {
@@ -393,7 +393,7 @@ app.post("/capture-order", async (req, res) => {
     return res.status(400).json({ error: "Order ID is required" });
   }
 
-  const url = `https://api.paypal.com/v2/checkout/orders/${orderId}/capture`;
+  const url = `https://api.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`;
   const data = {
     note_to_payer: "Thank you for your purchase!",
   };
