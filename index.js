@@ -191,6 +191,9 @@ app.post("/send_welcome_email", async (req, res) => {
   try {
     // Simulate user registration, then send welcome email
     await sendWelcomeEmail(email);
+    // const pdfBuffer = await generatePdf(dummyResponseData);
+    // console.log(pdfBuffer);
+    // await sendEmailWithPdf(email, pdfBuffer);
     // Return success response
     res
       .status(200)
@@ -401,7 +404,13 @@ app.post("/capture-order", async (req, res) => {
   try {
     const response = await axios.post(url, data, { headers });
     console.log("Order Captured:", response.data);
+    // Generate PDF
+    const pdfBuffer = await generatePdf(orderData);
+    console.log(pdfBuffer);
+    // Send PDF via email
+    await sendEmailWithPdf(orderData.payer.email_address, pdfBuffer);
 
+    console.log("PDF sent successfully to", orderData.payer.email_address);
     // Store only the necessary order data in Firestore
     console.log(userEmail);
     const orderRef = db
@@ -417,14 +426,6 @@ app.post("/capture-order", async (req, res) => {
       transactionId: response.data.id,
     });
     const orderData = response.data;
-
-    // Generate PDF
-    const pdfBuffer = await generatePdf(orderData);
-    console.log(pdfBuffer);
-    // Send PDF via email
-    await sendEmailWithPdf(orderData.payer.email_address, pdfBuffer);
-
-    console.log("PDF sent successfully to", orderData.payer.email_address);
   } catch (error) {
     console.error("Error capturing order:", error.message);
     console.error("Error response:", error.response.data); // Log detailed error response
