@@ -38,8 +38,8 @@ const database = firebase.database();
 const db = firebase.firestore();
 
 //PAYPAL CREDENTIALS
-const clientId = process.env.PAYPAL_CLIENT_ID;
-const clientSecret = process.env.PAYPAL_SECRET_KEY;
+const clientId = process.env.PAYPAL_CLIENT_ID_SANDBOX;
+const clientSecret = process.env.PAYPAL_SECRET_KEY_SANDBOX;
 const auth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
 // NODEMAILER CONFIGURATION
@@ -58,7 +58,7 @@ const dummyResponseData = {
   id: "1087061886278774P",
   links: [
     {
-      href: "https://api.sandbox.paypal.com/v2/checkout/orders/1087061886278774P",
+      href: "https://api.paypal.com/v2/checkout/orders/1087061886278774P",
       method: "GET",
       rel: "self",
     },
@@ -321,7 +321,7 @@ async function sendEmailWithPdf(email, pdfBuffer) {
 const generateToken = async () => {
   try {
     const tokenResponse = await axios.post(
-      "https://api.paypal.com/v1/oauth2/token",
+      "https://api.sandbox.paypal.com/v1/oauth2/token",
       "grant_type=client_credentials",
       {
         headers: {
@@ -340,7 +340,7 @@ const generateToken = async () => {
 
 //CREATING ORDER
 app.post("/create-order", async (req, res) => {
-  const url = "https://api.paypal.com/v2/checkout/orders";
+  const url = "https://api.sandbox.paypal.com/v2/checkout/orders";
   const { amount, program } = req.body;
   // console.log(amount);
   const queryParams = new URLSearchParams({
@@ -393,7 +393,7 @@ app.post("/capture-order", async (req, res) => {
     return res.status(400).json({ error: "Order ID is required" });
   }
 
-  const url = `https://api.paypal.com/v2/checkout/orders/${orderId}/capture`;
+  const url = `https://api.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`;
   const data = {
     note_to_payer: "Thank you for your purchase!",
   };
