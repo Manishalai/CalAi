@@ -167,7 +167,7 @@ async function sendWelcomeEmail(email) {
     // Create email message
     const mailOptions = {
       from: `Kristin Parker <kristin.p@calai.org>`, // Sender address
-      to: email, // Receiver address
+      to: "kristin.p@calai.org", // Receiver address
       subject: "Welcome to Our App!", // Subject line
       html: "<p>Welcome to Our App!</p>", // HTML body (can be more complex)
     };
@@ -206,7 +206,7 @@ app.post("/send_welcome_email", async (req, res) => {
 });
 
 //GENERATING PDF
-async function generatePdf(orderData) {
+async function generatePdf(orderData, program) {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ size: "A4", margin: 50 });
     const buffers = [];
@@ -224,7 +224,7 @@ async function generatePdf(orderData) {
     // Extract relevant data
     const payerName = `${orderData.payer.name.given_name} ${orderData.payer.name.surname}`;
     const payerAddress = `1 Main St, San Jose, CA 95131, US`; // Full address from the shipping details
-    const description = "AI Training Course"; // Assuming a fixed description as not provided in dummy data
+    const description = `${program}`; // Assuming a fixed description as not provided in dummy data
     const rate = orderData.purchase_units[0].payments.captures[0].amount.value;
     const amount = rate;
     const total = rate;
@@ -300,7 +300,7 @@ async function generatePdf(orderData) {
 async function sendEmailWithPdf(email, pdfBuffer) {
   const mailOptions = {
     from: "Kristin Parker <kristin.p@calai.org>",
-    to: "kristin.p@calai.org",
+    to: email,
     subject: "Your Order Receipt",
     text: "Thank you for your purchase. Please find your order receipt attached.",
     attachments: [
@@ -341,8 +341,11 @@ const generateToken = async () => {
 //CREATING ORDER
 app.post("/create-order", async (req, res) => {
   const url = "https://api.paypal.com/v2/checkout/orders";
-  const { amount } = req.body;
+  const { amount, program } = req.body;
   // console.log(amount);
+  const queryParams = new URLSearchParams({
+    cretification: program,
+  });
   const data = {
     intent: "CAPTURE",
     purchase_units: [
@@ -356,7 +359,7 @@ app.post("/create-order", async (req, res) => {
     application_context: {
       brand_name: "CalAI",
       locale: "en-US",
-      return_url: "https://calai.org/capture/success.html", // This is the returnUrl
+      return_url: `https://calai.org/capture/success.html?${queryParams}`, // This is the returnUrl
       cancel_url: "https://calai.org/capture/cancel.html", // Your cancel URL
     },
   };
@@ -384,7 +387,7 @@ app.post("/create-order", async (req, res) => {
 
 //CAPTURING ORDER
 app.post("/capture-order", async (req, res) => {
-  const { orderId } = req.body;
+  const { orderId, program } = req.body;
 
   if (!orderId) {
     return res.status(400).json({ error: "Order ID is required" });
@@ -406,7 +409,7 @@ app.post("/capture-order", async (req, res) => {
     console.log("Order Captured:", response.data);
     // Generate PDF
     const orderData = response.data;
-    const pdfBuffer = await generatePdf(orderData);
+    const pdfBuffer = await generatePdf(orderData, program);
     console.log(pdfBuffer);
     // Send PDF via email
     await sendEmailWithPdf(orderData.payer.email_address, pdfBuffer);
