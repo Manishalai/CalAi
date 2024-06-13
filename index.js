@@ -533,34 +533,50 @@ app.post("/validate-coupon", async (req, res) => {
   }
 });
 
+// Function to get the current time in IST
+function getCurrentIST() {
+  const now = new Date();
+  const istOffset = 5 * 60 * 60 * 1000 + 30 * 60 * 1000; // 5 hours and 30 minutes in milliseconds
+  const istTime = new Date(now.getTime() + istOffset);
+  const istTimeString = istTime.toISOString().slice(0, 19).replace("T", " ");
+  return istTimeString;
+}
+
 //REGISTRATION ROUTE
 app.post("/register", async (req, res) => {
-  try {
-    const {
-      name,
-      email,
-      contact,
-      country,
-      courseFee,
-      registrationFee,
-      certification,
-    } = req.body;
+  const {
+    name,
+    email,
+    contact,
+    country,
+    courseFee,
+    registrationFee,
+    certification,
+    couponCode,
+  } = req.body;
 
+  try {
     // Ensure that the user is authenticated and get their email
-    // const userEmail = firebase.auth().currentUser;
-    userEmail = email;
-    console.log(userEmail);
+    // If you are using Firebase Authentication, ensure you check the user's authentication status
+    // const user = firebase.auth().currentUser;
+    // if (!user) {
+    //   return res.status(401).send("User not authenticated");
+    // }
+    // const userEmail = user.email;
+
+    // Here, we assume userEmail is passed from req.body for demonstration
+    const userEmail = email;
+
+    console.log("User email:", userEmail);
+
     // Create a reference to the Firestore collection for the user's data
     const userCollectionRef = db
       .collection("before_transaction")
-      .doc(email)
+      .doc(userEmail)
       .collection("registrationData");
 
-    // Generate a unique ID for the registration data document
-    const registrationDataRef = userCollectionRef.doc();
-
     // Set data in the Firestore document
-    await registrationDataRef.set({
+    await userCollectionRef.add({
       name: name,
       email: email,
       contact: contact,
@@ -568,16 +584,18 @@ app.post("/register", async (req, res) => {
       courseFee: courseFee,
       registrationFee: registrationFee,
       certification: certification,
+      couponCode: couponCode,
+      createdAt: getCurrentIST(), // Add timestamp
     });
 
     // Log a success message
-    console.log("Registration successful for user:", email);
+    console.log("Registration successful for user:", userEmail);
 
     // Send a success response to the client
     res.status(200).send("Registration successful");
   } catch (error) {
-    console.error("Error registering:", error);
-    res.status(500).send("Failed to register");
+    console.error("Error during registration:", error);
+    res.status(500).send("Registration failed");
   }
 });
 
