@@ -251,6 +251,7 @@ app.post("/register", async (req, res) => {
       courseFee,
       registrationFee,
       certification,
+      couponCode
     } = req.body;
 
     // Ensure that the user is authenticated and get their email
@@ -274,6 +275,7 @@ app.post("/register", async (req, res) => {
       courseFee: courseFee,
       registrationFee: registrationFee,
       certification: certification,
+      couponCode:couponCode
     });
 
     // Log a success message
